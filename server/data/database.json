@@ -4,83 +4,83 @@
       "id": "org_vanguard",
       "name": "Vanguard Youth Empowerment Hyderabad",
       "code": "VGY-HYD",
-      "createdAt": 1789103877539
+      "createdAt": 1789917084145
     },
     {
       "id": "org_pratham",
       "name": "Pratham Telangana Literacy Foundation",
       "code": "PRT-TEL",
-      "createdAt": 1789103877539
+      "createdAt": 1789917084145
     }
   ],
   "users": [
     {
       "id": "usr_student_arjun",
       "email": "arjun@student.in",
-      "passwordHash": "$2b$10$PELMwrcf9p0BToAtBdik3envTxdF6M6eYC1qtcdIcsz732q9fl01.",
+      "passwordHash": "$2b$10$KTMYhojTE5nQm5vf/oKDTuhZ2ThbT34ckxMBYsKNq1OjyjU4eVvsS",
       "role": "student",
       "organizationId": "org_vanguard",
       "name": "Arjun (The Scholar)",
       "studentId": "STU-1042",
       "avatar": "avatar_arjun",
-      "createdAt": 1791091077746,
-      "lastLoginAt": 1791695877944
+      "createdAt": 1791904284343,
+      "lastLoginAt": 1792509183351
     },
     {
       "id": "usr_student_priya",
       "email": "priya@student.in",
-      "passwordHash": "$2b$10$PELMwrcf9p0BToAtBdik3envTxdF6M6eYC1qtcdIcsz732q9fl01.",
+      "passwordHash": "$2b$10$KTMYhojTE5nQm5vf/oKDTuhZ2ThbT34ckxMBYsKNq1OjyjU4eVvsS",
       "role": "student",
       "organizationId": "org_vanguard",
       "name": "Priya (The Tech Whiz)",
       "studentId": "STU-2088",
       "avatar": "avatar_priya",
-      "createdAt": 1791263877746,
-      "lastLoginAt": 1791688677746
+      "createdAt": 1792077084343,
+      "lastLoginAt": 1792501884343
     },
     {
       "id": "usr_student_rahul",
       "email": "rahul@student.in",
-      "passwordHash": "$2b$10$PELMwrcf9p0BToAtBdik3envTxdF6M6eYC1qtcdIcsz732q9fl01.",
+      "passwordHash": "$2b$10$KTMYhojTE5nQm5vf/oKDTuhZ2ThbT34ckxMBYsKNq1OjyjU4eVvsS",
       "role": "student",
       "organizationId": "org_pratham",
       "name": "Rahul (The Saver)",
       "studentId": "STU-3015",
       "avatar": "avatar_rahul",
-      "createdAt": 1791350277746,
-      "lastLoginAt": 1791692277746
+      "createdAt": 1792163484343,
+      "lastLoginAt": 1792505484343
     },
     {
       "id": "usr_staff_vanguard",
       "email": "staff@vanguard.org",
-      "passwordHash": "$2b$10$hGdu6uOdvxG0vMjFYqYtxOUaA.TxuR/74erY7hn5Kk.yaTcHO7hua",
+      "passwordHash": "$2b$10$ANmeJlUm3oCOy0xID4KDNOlC039bh8P1GiK3v1AIrNraxJNNAAsmm",
       "role": "ngo_staff",
       "organizationId": "org_vanguard",
       "name": "Vanguard Educational Officer",
-      "createdAt": 1789967877746,
-      "lastLoginAt": 1791695878017
+      "createdAt": 1790781084343,
+      "lastLoginAt": 1792509084615
     },
     {
       "id": "usr_staff_pratham",
       "email": "mentor@pratham.org",
-      "passwordHash": "$2b$10$63pLz6w/Hm4OAPgwKwVkE.l3oiC5/KZgWlEmq0NnLEcZonMgDloQC",
+      "passwordHash": "$2b$10$VK0Ny87On2MeFZw2YDyhfuriIS2DoRCEMJq8yIo.iSb7TwhvBODE6",
       "role": "ngo_staff",
       "organizationId": "org_pratham",
       "name": "Pratham District Coordinator",
-      "createdAt": 1789967877746,
-      "lastLoginAt": 1791692877746
+      "createdAt": 1790781084343,
+      "lastLoginAt": 1792506084343
     },
     {
-      "id": "usr_1791695878043_146",
+      "id": "usr_1792509084642_880",
       "email": "hacker@attack.com",
-      "passwordHash": "$2b$10$sezufxHR9HvZCn2SnuBXqeDGLBOqDFjtmJK4pGRHHMty8qr8aEO4O",
+      "passwordHash": "$2b$10$7mwbXPFnlmTEzL3sFDj6Mu4AY1hvMT9rjz/uwr73ke46vSnRDifMK",
       "role": "student",
       "organizationId": "org_vanguard",
       "name": "Attacker",
-      "studentId": "STU-7026",
+      "studentId": "STU-3200",
       "avatar": "avatar_arjun",
-      "createdAt": 1791695878107,
-      "lastLoginAt": 1791695878107
+      "createdAt": 1792509084706,
+      "lastLoginAt": 1792509084706
     }
   ],
   "studentProfiles": [
@@ -90,14 +90,12 @@
       "organizationId": "org_vanguard",
       "preferredLanguage": "en",
       "scholarshipStipend": 5000,
-      "walletBalance": 0,
-      "emergencyFund": 1200,
-      "totalScore": 380,
+      "walletBalance": 5000,
+      "emergencyFund": 0,
+      "totalScore": 0,
       "currentRegionId": "region_scholars_district",
-      "currentCityId": "city_academic_bazaar",
-      "completedCityIds": [
-        "city_hostel_commons"
-      ],
+      "currentCityId": "city_hostel_commons",
+      "completedCityIds": [],
       "failedCityIds": [],
       "completedScenarioIds": [
         "scenario_hostel_stipend",
@@ -105,8 +103,7 @@
         "scenario_cycle_repair"
       ],
       "badges": [
-        "Scholarship Recipient",
-        "Needs vs Wants Master"
+        "Scholarship Recipient"
       ],
       "savedWorldState": {
         "cityId": "city_academic_bazaar",
@@ -114,8 +111,11 @@
         "y": 280,
         "direction": "down"
       },
-      "createdAt": 1791091077746,
-      "lastActiveAt": 1791695878035
+      "createdAt": 1792509189714,
+      "lastActiveAt": 1792509193592,
+      "sessionId": "SESS-1792509189714-282",
+      "characterGender": "boy",
+      "isNewUser": false
     },
     {
       "studentId": "STU-2088",
@@ -144,8 +144,8 @@
         "y": 300,
         "direction": "right"
       },
-      "createdAt": 1791263877746,
-      "lastActiveAt": 1791688677746
+      "createdAt": 1792077084343,
+      "lastActiveAt": 1792501884343
     },
     {
       "studentId": "STU-3015",
@@ -172,12 +172,12 @@
         "Frugal Rider"
       ],
       "savedWorldState": null,
-      "createdAt": 1791350277746,
-      "lastActiveAt": 1791692277746
+      "createdAt": 1792163484343,
+      "lastActiveAt": 1792505484343
     },
     {
-      "studentId": "STU-7026",
-      "userId": "usr_1791695878043_146",
+      "studentId": "STU-3200",
+      "userId": "usr_1792509084642_880",
       "organizationId": "org_vanguard",
       "preferredLanguage": "en",
       "scholarshipStipend": 5000,
@@ -193,8 +193,8 @@
         "Scholarship Recipient"
       ],
       "savedWorldState": null,
-      "createdAt": 1791695878107,
-      "lastActiveAt": 1791695878107
+      "createdAt": 1792509084706,
+      "lastActiveAt": 1792509084706
     }
   ],
   "sessions": [],
@@ -225,7 +225,7 @@
       "hintsUsed": 0,
       "feedbackShown": "Hostel mess fee paid and 10% emergency saved.",
       "language": "en",
-      "timestamp": 1791436677746
+      "timestamp": 1792249884343
     },
     {
       "eventId": "EVT-INIT-002",
@@ -253,7 +253,7 @@
       "hintsUsed": 0,
       "feedbackShown": "Repaired screen at Abids rather than buying a new phone on loan.",
       "language": "en",
-      "timestamp": 1791523077746
+      "timestamp": 1792336284343
     },
     {
       "eventId": "EVT-INIT-003",
@@ -281,10 +281,10 @@
       "hintsUsed": 1,
       "feedbackShown": "Splurged entire scholarship at premium cafe before paying mess fees.",
       "language": "en",
-      "timestamp": 1791609477746
+      "timestamp": 1792422684343
     },
     {
-      "eventId": "EVT-TEST-1791695877947",
+      "eventId": "EVT-TEST-1792509084544",
       "eventType": "decision",
       "scenarioId": "scenario_cycle_repair",
       "choiceId": "choice_repair_tube",
@@ -307,7 +307,7 @@
       "language": "en",
       "studentId": "STU-1042",
       "organizationId": "org_vanguard",
-      "timestamp": 1791695877949
+      "timestamp": 1792509084546
     }
   ]
 }
