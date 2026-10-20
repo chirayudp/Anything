@@ -89,11 +89,27 @@ export class EventLogger {
 
   private static async syncToServer(event: DecisionEvent): Promise<void> {
     try {
-      await fetch('/api/analytics/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(event),
-      });
+      const token =
+        typeof window !== 'undefined' ? window.localStorage.getItem('moneyquest_auth_token') : null;
+      if (token) {
+        await fetch('/api/student/events', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            ...event,
+            eventType: 'decision',
+          }),
+        });
+      } else {
+        await fetch('/api/analytics/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(event),
+        });
+      }
     } catch {
       // Offline fallback: events remain in local storage
     }

@@ -1,12 +1,12 @@
 export type LearningPillar = 'budget' | 'save' | 'invest' | 'safety';
 
-export type ChoiceTier = 'best' | 'better' | 'good' | 'very_bad';
+export type ChoiceTier = 'best' | 'better' | 'good' | 'bad' | 'very_bad';
 
 export interface FinancialImpact {
-  walletDelta: number; // e.g. -1500
-  emergencyDelta: number; // e.g. +500
-  scoreDelta: number; // e.g. +100
-  stressDelta: number; // -10 to +30
+  walletDelta: number;
+  emergencyDelta: number;
+  scoreDelta: number;
+  stressDelta: number;
 }
 
 export interface PuzzleChoice {
@@ -20,6 +20,18 @@ export interface PuzzleChoice {
   educationalVideoUrl?: string;
 }
 
+export interface PuzzleStep {
+  id: string;
+  title: Record<'en' | 'hi' | 'te', string>;
+  situationContext?: Record<'en' | 'hi' | 'te', string>;
+  choices: PuzzleChoice[];
+}
+
+export interface IdeaCard {
+  title: Record<'en' | 'hi' | 'te', string>;
+  points: Record<'en' | 'hi' | 'te', string>[];
+}
+
 export interface PuzzleScenario {
   id: string;
   cityId: string;
@@ -29,13 +41,26 @@ export interface PuzzleScenario {
   situationContext: Record<'en' | 'hi' | 'te', string>;
   stipendContext: string;
   educationalHint: Record<'en' | 'hi' | 'te', string>;
-  choices: PuzzleChoice[];
+  ideaCard?: IdeaCard;
+  choices?: PuzzleChoice[];
+  steps: PuzzleStep[];
+}
+
+export interface StepEvaluation {
+  stepId: string;
+  choiceId: string;
+  tier: ChoiceTier;
+  points: number;
+  financialImpact: FinancialImpact;
 }
 
 export interface EvaluationResult {
   scenarioId: string;
-  choiceId: string;
-  tier: ChoiceTier;
+  choiceId?: string;
+  tier?: ChoiceTier;
+  stepResults?: StepEvaluation[];
+  totalPoints?: number;
+  overallTier?: ChoiceTier;
   isPassed: boolean;
   isRecoveryNeeded: boolean;
   financialImpact: FinancialImpact;

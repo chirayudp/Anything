@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   PuzzleScenario,
   PuzzleChoice,
@@ -9,6 +10,7 @@ import {
 } from '../../types';
 import { GameEngine } from '../../engine/gameEngine';
 import { EventLogger } from '../../engine/eventLogger';
+import { GameStorage } from '../../engine/storage';
 import { AiService } from '../../services/aiService';
 import { AiFeedbackCard } from '../ai/AiFeedbackCard';
 import confetti from 'canvas-confetti';
@@ -21,6 +23,7 @@ import {
   Wallet,
   X,
   CheckCircle,
+  Lightbulb
 } from 'lucide-react';
 
 interface PuzzleModalProps {
@@ -38,7 +41,15 @@ export const PuzzleModal: React.FC<PuzzleModalProps> = ({
   onClose,
   onUpdateProfile,
 }) => {
+  const [showIdeaCard, setShowIdeaCard] = useState<boolean>(!!scenario.ideaCard);
+  const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
+  const [chosenChoices, setChosenChoices] = useState<PuzzleChoice[]>([]);
+  // Pre-decision snapshot to undo financial damage on retry / recovery
+  const [profileBeforeDecision, setProfileBeforeDecision] = useState<StudentProfile>(() => ({ ...profile }));
   const [selectedChoiceId, setSelectedChoiceId] = useState<string | null>(null);
+  
+  const [intermediateProfile, setIntermediateProfile] = useState<StudentProfile>(profile);
+  
   const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
   const [aiExplanation, setAiExplanation] = useState<AiExplanationResponse | null>(null);
   const [activeHint, setActiveHint] = useState<string | null>(null);
@@ -47,9 +58,26 @@ export const PuzzleModal: React.FC<PuzzleModalProps> = ({
 
   const title = scenario.title[language] || scenario.title.en;
   const subtitle = scenario.subtitle[language] || scenario.subtitle.en;
-  const situation = scenario.situationContext[language] || scenario.situationContext.en;
 
-  // Request Hint
+  const totalSteps = scenario.steps?.length || (scenario.choices ? 1 : 0);
+  const currentStep = scenario.steps?.[currentStepIndex] || (scenario.choices ? {
+    id: `${scenario.id}_step_1`,
+    title: scenario.title,
+    situationContext: scenario.situationContext,
+    choices: scenario.choices,
+  } : undefined);
+
+  // Randomize MCQ choice order so options don't appear in predictable decreasing order
+  const shuffledChoices = useMemo(() => {
+    if (!currentStep?.choices) return [];
+    const array = [...currentStep.choices];
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }, [currentStep?.id, currentStepIndex]);
+
   const handleRequestHint = async () => {
     setIsLoadingHint(true);
     try {
@@ -66,259 +94,291 @@ export const PuzzleModal: React.FC<PuzzleModalProps> = ({
     }
   };
 
-  // Submit Decision
-  const handleConfirmDecision = async () => {
-    if (!selectedChoiceId || isSubmitting) return;
+  const handleNextStep = async () => {
+    if (!selectedChoiceId || !currentStep) return;
 
-    const chosenChoice = scenario.choices.find((c) => c.id === selectedChoiceId);
+    const chosenChoice = currentStep.choices.find((c) => c.id === selectedChoiceId);
     if (!chosenChoice) return;
+    
+    const newChoices = [...chosenChoices, chosenChoice];
+    setChosenChoices(newChoices);
+    
+    const nextProfile = GameEngine.evaluateSingleStep(intermediateProfile, chosenChoice);
+    setIntermediateProfile(nextProfile);
+    
+    setSelectedChoiceId(null);
+    setActiveHint(null);
 
+    if (currentStepIndex + 1 < totalSteps) {
+      setCurrentStepIndex(currentStepIndex + 1);
+    } else {
+      await finishScenario(newChoices);
+    }
+  };
+
+  const finishScenario = async (finalChoices: PuzzleChoice[]) => {
     setIsSubmitting(true);
-
-    // 1. Pure Deterministic Evaluation by GameEngine
-    const { updatedProfile, result } = GameEngine.evaluateChoice(
+    
+    const { updatedProfile, result } = GameEngine.evaluateScenarioSequence(
       profile,
       scenario,
-      chosenChoice,
+      finalChoices,
       language
     );
 
-    // 2. Chronological Decision Logging
-    EventLogger.recordDecision({
-      studentId: profile.studentId,
-      sessionId: profile.sessionId,
-      regionId: profile.currentRegionId,
-      cityId: scenario.cityId,
-      scenarioId: scenario.id,
-      choiceId: chosenChoice.id,
-      tier: chosenChoice.tier,
-      pillar: scenario.pillar,
-      walletBefore: profile.walletBalance,
-      walletAfter: updatedProfile.walletBalance,
-      emergencyBefore: profile.emergencyFund,
-      emergencyAfter: updatedProfile.emergencyFund,
-      financialImpact: chosenChoice.financialImpact,
-      feedbackShown: result.feedback,
-      language,
+    finalChoices.forEach((choice, idx) => {
+      EventLogger.recordDecision({
+        studentId: profile.studentId,
+        sessionId: profile.sessionId,
+        regionId: profile.currentRegionId,
+        cityId: scenario.cityId,
+        scenarioId: scenario.id,
+        choiceId: choice.id,
+        tier: choice.tier,
+        pillar: scenario.pillar,
+        walletBefore: profile.walletBalance,
+        walletAfter: updatedProfile.walletBalance,
+        emergencyBefore: profile.emergencyFund,
+        emergencyAfter: updatedProfile.emergencyFund,
+        financialImpact: choice.financialImpact,
+        feedbackShown: result.feedback,
+        language,
+      });
     });
 
-    // 3. Update global player profile
     onUpdateProfile(updatedProfile);
     setEvaluation(result);
 
-    // 4. Trigger celebration confetti on Best choice
-    if (chosenChoice.tier === 'best') {
+    if (result.overallTier === 'best') {
       try {
-        confetti({
-          particleCount: 80,
-          spread: 70,
-          origin: { y: 0.6 },
-        });
-      } catch {
-        // Safe if canvas-confetti is not rendered
-      }
+        confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+      } catch {}
     }
 
-    // 5. Fetch AI Pedagogical Explanation
     try {
+      const lastChoice = finalChoices[finalChoices.length - 1];
       const explanation = await AiService.getExplanation({
         scenarioTitle: title,
-        scenarioContext: situation,
+        scenarioContext: scenario.situationContext[language] || scenario.situationContext.en,
         pillar: scenario.pillar,
-        chosenOptionText: chosenChoice.text[language] || chosenChoice.text.en,
-        tier: chosenChoice.tier,
-        financialImpact: chosenChoice.financialImpact,
+        chosenOptionText: lastChoice.text[language] || lastChoice.text.en,
+        tier: result.overallTier || result.tier || 'good',
+        financialImpact: result.financialImpact,
         language,
       });
       setAiExplanation(explanation);
     } catch {
-      // Handled internally by AiService fallback
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Retry (Recovery Mode)
+  // Retry (Recovery Mode / Revert Financial Penalty)
   const handleRetry = () => {
+    // Revert profile to the state before the failed decision was committed
+    onUpdateProfile(profileBeforeDecision);
+    setShowIdeaCard(false);
+    setCurrentStepIndex(0);
+    setChosenChoices([]);
     setSelectedChoiceId(null);
+    setIntermediateProfile(profileBeforeDecision);
     setEvaluation(null);
     setAiExplanation(null);
     setActiveHint(null);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-fadeIn">
+  // Immediate Bankruptcy Reset inside Puzzle
+  const handleResetBankruptcyInPuzzle = () => {
+    const refreshed = GameStorage.resetBankruptcy(profile);
+    setProfileBeforeDecision({ ...refreshed });
+    onUpdateProfile(refreshed);
+  };
+
+  const mountNode = typeof document !== 'undefined' ? (document.fullscreenElement || document.body) : null;
+
+  if (showIdeaCard && scenario.ideaCard) {
+    const cardTitle = scenario.ideaCard.title[language] || scenario.ideaCard.title.en;
+    const cardPoints = scenario.ideaCard.points.map(p => p[language] || p.en);
+    const ideaContent = (
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
+        <div className="max-w-xl w-full bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 shadow-2xl relative">
+          <div className="flex items-center gap-3 mb-4">
+            <Lightbulb className="w-8 h-8 text-amber-400" />
+            <h2 className="text-2xl font-extrabold text-white">Idea Card: {cardTitle}</h2>
+          </div>
+          <div className="space-y-4 mb-8">
+            {cardPoints.map((pt, idx) => (
+              <div key={idx} className="flex items-start gap-3 bg-slate-800/50 p-4 rounded-xl">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs">{idx + 1}</span>
+                <span className="text-slate-200 text-sm leading-relaxed">{pt}</span>
+              </div>
+            ))}
+          </div>
+          <button onClick={() => setShowIdeaCard(false)} className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold rounded-xl shadow-lg transition active:scale-95">
+            Got it! Start Scenario
+          </button>
+        </div>
+      </div>
+    );
+    return mountNode ? createPortal(ideaContent, mountNode) : ideaContent;
+  }
+
+  const content = (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-fadeIn">
       <div className="max-w-2xl w-full bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 shadow-2xl relative my-8">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-5 right-5 text-slate-400 hover:text-white p-1.5 rounded-xl transition"
-        >
+        <button onClick={onClose} className="absolute top-5 right-5 text-slate-400 hover:text-white p-1.5 rounded-xl transition">
           <X className="w-5 h-5" />
         </button>
 
-        {/* Header Badges */}
-        <div className="flex flex-wrap items-center gap-2 mb-3">
-          <span className="text-xs uppercase font-extrabold tracking-wider px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300">
-            Pillar: {scenario.pillar.toUpperCase()}
-          </span>
-          <span className="text-xs text-slate-400 px-3 py-1 rounded-full bg-slate-800 border border-slate-700">
-            {scenario.stipendContext}
-          </span>
+        <div className="flex flex-wrap items-center justify-between mb-4">
+          <div className="flex gap-2">
+            <span className="text-xs uppercase font-extrabold px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-300">
+              Pillar: {scenario.pillar.toUpperCase()}
+            </span>
+            <span className="text-xs text-slate-400 px-3 py-1 rounded-full bg-slate-800 border border-slate-700">
+              {scenario.stipendContext}
+            </span>
+          </div>
+          
+          <div className="flex gap-4 text-xs font-mono">
+            <div className="text-emerald-400">Wallet: ₹{intermediateProfile.walletBalance}</div>
+            <div className="text-sky-400">Reserve: ₹{intermediateProfile.emergencyFund}</div>
+          </div>
         </div>
 
         <h2 className="text-2xl font-extrabold text-white mb-1">{title}</h2>
         <div className="text-sm font-medium text-amber-400 mb-4">{subtitle}</div>
 
-        {/* Situation Card */}
-        <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 text-slate-200 text-sm leading-relaxed mb-6">
-          <p>{situation}</p>
-        </div>
-
-        {/* Hint Section */}
-        {activeHint ? (
-          <div className="bg-amber-950/40 border border-amber-500/40 rounded-xl p-3.5 mb-6 text-xs text-amber-200 flex items-start gap-2.5">
-            <Sparkles className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-bold">Mentor Hint: </span>
-              {activeHint}
+        {/* In-Puzzle Bankruptcy Warning & Relief Action */}
+        {profile.walletBalance <= 0 && (
+          <div className="bg-rose-950/70 border border-rose-500/60 rounded-2xl p-4 mb-5 text-rose-200 text-xs flex items-center justify-between gap-3 shadow-lg">
+            <div className="flex items-center gap-2.5">
+              <ShieldAlert className="w-5 h-5 text-rose-400 flex-shrink-0 animate-bounce" />
+              <div>
+                <span className="font-extrabold text-rose-300 uppercase tracking-wider">Bankruptcy Reached: </span>
+                <span>Your wallet balance is ₹0. Claim emergency relief to continue.</span>
+              </div>
             </div>
+            <button
+              onClick={handleResetBankruptcyInPuzzle}
+              className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold rounded-xl shadow-md transition whitespace-nowrap active:scale-95"
+            >
+              Reset to ₹5,000
+            </button>
           </div>
-        ) : (
-          !evaluation && (
-            <div className="mb-6 flex justify-end">
-              <button
-                onClick={handleRequestHint}
-                disabled={isLoadingHint}
-                className="inline-flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 font-semibold transition"
-              >
-                <HelpCircle className="w-4 h-4" />
-                <span>{isLoadingHint ? 'Generating Hint...' : 'Need a Hint?'}</span>
-              </button>
-            </div>
-          )
         )}
 
-        {/* Decision Choices or Evaluation Resolution */}
-        {!evaluation ? (
-          <div className="space-y-3 mb-6">
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-              Select Your Financial Decision:
-            </div>
-            {scenario.choices.map((choice) => {
-              const choiceText = choice.text[language] || choice.text.en;
-              const isSelected = selectedChoiceId === choice.id;
-
-              return (
-                <div
-                  key={choice.id}
-                  onClick={() => setSelectedChoiceId(choice.id)}
-                  className={`cursor-pointer rounded-2xl p-4 border transition-all text-sm ${
-                    isSelected
-                      ? 'bg-amber-500/10 border-amber-500 text-white shadow-lg shadow-amber-500/10'
-                      : 'bg-slate-950/50 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-950'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 mt-0.5 transition ${
-                        isSelected
-                          ? 'border-amber-400 bg-amber-400 text-slate-950'
-                          : 'border-slate-600 bg-transparent'
-                      }`}
-                    >
-                      {isSelected && <div className="w-2 h-2 rounded-full bg-slate-950" />}
-                    </div>
-                    <div className="leading-snug">{choiceText}</div>
-                  </div>
-                </div>
-              );
-            })}
+        {!evaluation && (
+          <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 text-slate-200 text-sm leading-relaxed mb-6">
+            <p>{scenario.situationContext[language] || scenario.situationContext.en}</p>
           </div>
-        ) : (
-          /* Consequence & Educational Feedback Screen */
+        )}
+
+        {!evaluation && scenario.steps && scenario.steps.length > 1 && (
+          <div className="flex items-center gap-2 mb-6">
+            {scenario.steps.map((s, idx) => (
+              <div key={s.id} className={`h-1.5 flex-1 rounded-full ${idx <= currentStepIndex ? 'bg-amber-400' : 'bg-slate-700'}`} />
+            ))}
+          </div>
+        )}
+
+        {!evaluation && currentStep && (
+          <>
+            {currentStep.situationContext && (
+               <div className="mb-4 text-sm text-slate-300 bg-slate-800/40 p-3 rounded-lg border border-slate-700/50">
+                 {currentStep.situationContext[language] || currentStep.situationContext.en}
+               </div>
+            )}
+            
+            {activeHint ? (
+              <div className="bg-amber-950/40 border border-amber-500/40 rounded-xl p-3.5 mb-6 text-xs text-amber-200 flex items-start gap-2.5">
+                <Sparkles className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                <div><span className="font-bold">Mentor Hint: </span>{activeHint}</div>
+              </div>
+            ) : (
+              <div className="mb-6 flex justify-end">
+                <button onClick={handleRequestHint} disabled={isLoadingHint} className="inline-flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 font-semibold transition">
+                  <HelpCircle className="w-4 h-4" />
+                  <span>{isLoadingHint ? 'Generating Hint...' : 'Need a Hint?'}</span>
+                </button>
+              </div>
+            )}
+
+            <div className="space-y-3 mb-6">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                Step {currentStepIndex + 1}: {currentStep.title[language] || currentStep.title.en}
+              </div>
+              {shuffledChoices.map((choice) => {
+                const choiceText = choice.text[language] || choice.text.en;
+                const isSelected = selectedChoiceId === choice.id;
+                return (
+                  <div
+                    key={choice.id}
+                    onClick={() => setSelectedChoiceId(choice.id)}
+                    className={`cursor-pointer rounded-2xl p-4 border transition-all text-sm ${isSelected ? 'bg-amber-500/10 border-amber-500 text-white' : 'bg-slate-950/50 border-slate-800 text-slate-300 hover:bg-slate-950'}`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 mt-0.5 transition ${isSelected ? 'border-amber-400 bg-amber-400 text-slate-950' : 'border-slate-600'}`}>
+                        {isSelected && <div className="w-2 h-2 rounded-full bg-slate-950" />}
+                      </div>
+                      <div className="leading-snug">{choiceText}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {evaluation && (
           <div className="space-y-5 mb-6">
-            {/* Outcome Impact Banner */}
-            <div
-              className={`rounded-2xl p-4 border flex items-center justify-between gap-4 ${
-                evaluation.isPassed
-                  ? 'bg-emerald-950/50 border-emerald-500/50 text-emerald-200'
-                  : 'bg-rose-950/50 border-rose-500/50 text-rose-200'
-              }`}
-            >
+            <div className={`rounded-2xl p-4 border flex items-center justify-between gap-4 ${evaluation.isPassed ? 'bg-emerald-950/50 border-emerald-500/50 text-emerald-200' : 'bg-rose-950/50 border-rose-500/50 text-rose-200'}`}>
               <div className="flex items-center gap-3">
-                {evaluation.isPassed ? (
-                  <CheckCircle className="w-6 h-6 text-emerald-400 flex-shrink-0" />
-                ) : (
-                  <ShieldAlert className="w-6 h-6 text-rose-400 flex-shrink-0" />
-                )}
+                {evaluation.isPassed ? <CheckCircle className="w-6 h-6 text-emerald-400 flex-shrink-0" /> : <ShieldAlert className="w-6 h-6 text-rose-400 flex-shrink-0" />}
                 <div>
                   <div className="text-xs font-bold uppercase tracking-wider">
-                    {evaluation.isPassed ? 'Decision Passed' : 'Recovery State Triggered'}
+                    {evaluation.isPassed ? 'Scenario Cleared' : 'Recovery State Triggered'}
                   </div>
                   <div className="font-extrabold text-base text-white">
-                    {evaluation.tier === 'best'
-                      ? 'Best Decision (+100 Score)'
-                      : evaluation.tier === 'better'
-                      ? 'Better Decision (+75 Score)'
-                      : evaluation.tier === 'good'
-                      ? 'Good Decision (+50 Score)'
-                      : 'Very Bad Decision (Critical Trap)'}
+                    {evaluation.overallTier === 'best' ? `Best Outcome (${evaluation.totalPoints}/9)` : evaluation.overallTier === 'good' ? `Good Outcome (${evaluation.totalPoints}/9)` : evaluation.overallTier === 'bad' ? `Suboptimal Outcome (${evaluation.totalPoints}/9)` : `Critical Trap (${evaluation.totalPoints}/9)`}
                   </div>
                 </div>
               </div>
-
-              {/* Net Wallet Delta */}
               <div className="text-right text-xs">
-                <div>Wallet: ₹{evaluation.financialImpact.walletDelta}</div>
-                <div>Reserve: ₹{evaluation.financialImpact.emergencyDelta}</div>
+                <div>Total Wallet: ₹{evaluation.financialImpact.walletDelta}</div>
+                <div>Total Reserve: ₹{evaluation.financialImpact.emergencyDelta}</div>
               </div>
             </div>
-
-            {/* AI or Fallback Explanation Card */}
-            {aiExplanation && (
+            
+            {aiExplanation ? (
               <AiFeedbackCard explanation={aiExplanation} isPassed={evaluation.isPassed} />
+            ) : (
+              <div className="bg-slate-800 p-4 rounded-xl text-sm text-slate-300">{evaluation.feedback}</div>
             )}
           </div>
         )}
 
-        {/* Modal Action Footer */}
         <div className="flex items-center justify-between pt-4 border-t border-slate-800">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white transition"
-          >
+          <button onClick={onClose} className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white transition">
             Cancel
           </button>
 
           {!evaluation ? (
             <button
-              onClick={handleConfirmDecision}
+              onClick={handleNextStep}
               disabled={!selectedChoiceId || isSubmitting}
-              className={`px-6 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition ${
-                selectedChoiceId && !isSubmitting
-                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 active:scale-95'
-                  : 'bg-slate-800 text-slate-500 cursor-not-allowed'
-              }`}
+              className={`px-6 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition ${selectedChoiceId && !isSubmitting ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950' : 'bg-slate-800 text-slate-500'}`}
             >
-              <span>{isSubmitting ? 'Simulating Consequence...' : 'Commit Decision'}</span>
+              <span>{isSubmitting ? 'Simulating...' : currentStepIndex + 1 === totalSteps ? 'Finalize Decisions' : 'Next Step'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           ) : evaluation.isRecoveryNeeded ? (
-            /* Recovery Retry Button */
-            <button
-              onClick={handleRetry}
-              className="px-6 py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-rose-600/30 transition transform active:scale-95"
-            >
+            <button onClick={handleRetry} className="px-6 py-3 bg-rose-600 text-white rounded-xl text-xs font-bold flex items-center gap-2">
               <RotateCcw className="w-4 h-4" />
-              <span>Retry with Better Financial Judgement</span>
+              <span>Retry Challenge</span>
             </button>
           ) : (
-            /* Continue Adventure Button */
-            <button
-              onClick={onClose}
-              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-emerald-600/30 transition transform active:scale-95"
-            >
+            <button onClick={onClose} className="px-6 py-3 bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center gap-2">
               <span>Continue Adventure</span>
               <ArrowRight className="w-4 h-4" />
             </button>
@@ -327,4 +387,6 @@ export const PuzzleModal: React.FC<PuzzleModalProps> = ({
       </div>
     </div>
   );
+
+  return mountNode ? createPortal(content, mountNode) : content;
 };

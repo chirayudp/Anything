@@ -15,7 +15,7 @@ export const REGIONS: RegionMetadata[] = [
     theme: 'Growth, Compounding & Long-Term Assets',
     description: "Move beyond daily survival. Discover the magic of compounding, diversified savings, and planning for your future career goals.",
     bannerColor: 'from-emerald-600 to-teal-900',
-    cityIds: ['city_compounding_grove', 'city_diversified_market', 'city_inflation_alley', 'city_opportunity_guild', 'city_skill_forge'],
+    cityIds: ['city_investment_valley', 'city_compounding_grove', 'city_diversified_market', 'city_inflation_alley', 'city_opportunity_guild', 'city_skill_forge'],
   },
   {
     id: 'region_guardian_citadel',
@@ -23,7 +23,7 @@ export const REGIONS: RegionMetadata[] = [
     theme: 'Financial Safety, Fraud Defense & Mastery',
     description: "Protect your hard-earned savings against deceptive digital traps, phishing SMS, fake job scams, and UPI fraud.",
     bannerColor: 'from-sky-600 to-indigo-950',
-    cityIds: ['city_phishers_cove', 'city_upi_maze', 'city_pyramid_peak', 'city_credential_vault', 'city_grand_conclave'],
+    cityIds: ['city_harbor_town', 'city_phishers_cove', 'city_upi_maze', 'city_pyramid_peak', 'city_credential_vault', 'city_grand_conclave'],
   },
 ];
 
@@ -90,6 +90,18 @@ export const CITIES: Record<string, CityMetadata> = {
   },
 
   // Region 2: The Prosperity Outskirts
+  city_investment_valley: {
+    id: 'city_investment_valley',
+    name: 'Investment Valley',
+    regionId: 'region_prosperity_outskirts',
+    description: 'School Science Garden & River Dock. Discover the Mango Tree principle, token growth, and cargo boat diversification.',
+    pillar: 'invest',
+    requiredPredecessorId: 'city_academic_bazaar',
+    x: 180,
+    y: 350,
+    color: '#10b981',
+    icon: 'TrendingUp',
+  },
   city_compounding_grove: {
     id: 'city_compounding_grove',
     name: 'Compounding Grove',
@@ -152,6 +164,18 @@ export const CITIES: Record<string, CityMetadata> = {
   },
 
   // Region 3: The Guardian Citadel
+  city_harbor_town: {
+    id: 'city_harbor_town',
+    name: 'Harbor Town',
+    regionId: 'region_guardian_citadel',
+    description: 'Maritime Port & Cyber Security Citadel. Defend your funds from SMS phishing, ATM skimming, and impersonation extortion.',
+    pillar: 'safety',
+    requiredPredecessorId: 'city_investment_valley',
+    x: 160,
+    y: 520,
+    color: '#0284c7',
+    icon: 'ShieldCheck',
+  },
   city_phishers_cove: {
     id: 'city_phishers_cove',
     name: "Phishers' Cove",

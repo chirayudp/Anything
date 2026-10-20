@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { AnalyticsService } from '../../services/analyticsService';
 import { EventLogger } from '../../engine/eventLogger';
 import { StudentProfile } from '../../types';
@@ -23,8 +24,8 @@ export const NgoDashboardModal: React.FC<NgoDashboardModalProps> = ({ profile, o
   const overview = AnalyticsService.getOverview();
   const learningGaps = EventLogger.detectLearningGaps(profile.studentId);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto animate-fadeIn">
+  const content = (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto animate-fadeIn">
       <div className="max-w-4xl w-full bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 shadow-2xl relative my-8 text-slate-100">
         {/* Close Button */}
         <button
@@ -196,9 +197,9 @@ export const NgoDashboardModal: React.FC<NgoDashboardModalProps> = ({ profile, o
                           className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                             evt.tier === 'best'
                               ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/30'
-                              : evt.tier === 'better'
-                              ? 'bg-blue-950 text-blue-400 border border-blue-500/30'
                               : evt.tier === 'good'
+                              ? 'bg-blue-950 text-blue-400 border border-blue-500/30'
+                              : evt.tier === 'bad'
                               ? 'bg-slate-800 text-slate-300'
                               : 'bg-rose-950 text-rose-400 border border-rose-500/30'
                           }`}
@@ -240,4 +241,7 @@ export const NgoDashboardModal: React.FC<NgoDashboardModalProps> = ({ profile, o
       </div>
     </div>
   );
+
+  const mountNode = document.fullscreenElement || document.body;
+  return createPortal(content, mountNode);
 };

@@ -36,6 +36,7 @@ export interface NPC {
   x: number;
   y: number;
   cityId: string;
+  direction?: 'up' | 'down' | 'left' | 'right';
   dialogueIntro: Record<'en' | 'hi' | 'te', string>;
   dialogueSolved?: Record<'en' | 'hi' | 'te', string>;
   scenarioId?: string;

@@ -13,11 +13,14 @@ export class AiService {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        return {
-          ...data,
-          isAiGenerated: true,
-        };
+        const text = await response.text();
+        if (text && text.trim().length > 0) {
+          const data = JSON.parse(text);
+          return {
+            ...data,
+            isAiGenerated: true,
+          };
+        }
       }
     } catch {
       // Fallback seamlessly on network or server offline
@@ -38,11 +41,14 @@ export class AiService {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        return {
-          hint: data.hint,
-          isAiGenerated: true,
-        };
+        const text = await response.text();
+        if (text && text.trim().length > 0) {
+          const data = JSON.parse(text);
+          return {
+            hint: data.hint,
+            isAiGenerated: true,
+          };
+        }
       }
     } catch {
       // Network offline fallback

@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { NPC, GameLanguage } from '../../types';
 import { MessageSquare, ArrowRight, X } from 'lucide-react';
 
@@ -21,8 +22,8 @@ export const NpcDialogueModal: React.FC<NpcDialogueModalProps> = ({
     ? npc.dialogueSolved[language] || npc.dialogueSolved.en
     : npc.dialogueIntro[language] || npc.dialogueIntro.en;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-fadeIn">
+  const content = (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn">
       <div className="max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl relative">
         <button
           onClick={onClose}
@@ -75,4 +76,7 @@ export const NpcDialogueModal: React.FC<NpcDialogueModalProps> = ({
       </div>
     </div>
   );
+
+  const mountNode = document.fullscreenElement || document.body;
+  return createPortal(content, mountNode);
 };
