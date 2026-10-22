@@ -1,6 +1,20 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { AuthService } from '../services/authService';
 
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const toAppPath = (pathname: string): string => {
+  if (basePath && pathname.startsWith(basePath)) {
+    return pathname.slice(basePath.length) || '/';
+  }
+  return pathname || '/';
+};
+
+const toBrowserPath = (path: string): string => {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${basePath}${normalizedPath}` || '/';
+};
+
 export interface RouteMatch {
   path: string;
   params: Record<string, string>;
@@ -50,7 +64,7 @@ export function matchPath(pattern: string, pathname: string): { matches: boolean
 export const RouterProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentPath, setCurrentPath] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      return window.location.pathname || '/';
+      return toAppPath(window.location.pathname);
     }
     return '/';
   });
@@ -59,7 +73,7 @@ export const RouterProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     const handlePopState = () => {
-      setCurrentPath(window.location.pathname || '/');
+      setCurrentPath(toAppPath(window.location.pathname));
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -68,8 +82,9 @@ export const RouterProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const navigate = (to: string) => {
     if (typeof window !== 'undefined') {
-      if (window.location.pathname !== to) {
-        window.history.pushState({}, '', to);
+      const browserPath = toBrowserPath(to);
+      if (window.location.pathname !== browserPath) {
+        window.history.pushState({}, '', browserPath);
         setCurrentPath(to);
       }
     }
@@ -77,7 +92,7 @@ export const RouterProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const replace = (to: string) => {
     if (typeof window !== 'undefined') {
-      window.history.replaceState({}, '', to);
+      window.history.replaceState({}, '', toBrowserPath(to));
       setCurrentPath(to);
     }
   };

@@ -51,3 +51,14 @@ Preview production build:
 ```bash
 npm run preview
 ```
+
+## Deploying to GitHub Pages
+
+The repository includes a GitHub Actions workflow at
+`.github/workflows/deploy-pages.yml`. Enable **Settings → Pages → GitHub Actions**
+in the repository, then push to `main`. The workflow builds the Vite app with the
+`/Anything/` repository base path and publishes the `dist` directory.
+
+GitHub Pages hosts only the frontend. Student/NGO authentication, analytics, and
+live AI proxy requests still require the optional Express server; the built-in
+curriculum fallback remains available in the static frontend.

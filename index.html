@@ -11,6 +11,13 @@
   </head>
   <body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-amber-500 selection:text-slate-950">
     <div id="root"></div>
+    <script>
+      const route = new URLSearchParams(window.location.search).get('route');
+      if (route) {
+        const basePath = window.location.pathname.replace(/\/$/, '');
+        window.history.replaceState({}, '', `${basePath}${route}`);
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

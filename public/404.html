@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MoneyQuest</title>
+    <script>
+      // Preserve client-side routes when GitHub Pages serves its 404 fallback.
+      const base = '/Anything/';
+      const path = window.location.pathname.startsWith(base)
+        ? window.location.pathname.slice(base.length)
+        : '';
+      const query = window.location.search;
+      window.location.replace(`${base}?route=/${path}${query}`);
+    </script>
+  </head>
+  <body>
+    Loading MoneyQuest...
+  </body>
+</html>
