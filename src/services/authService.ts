@@ -294,6 +294,18 @@ export class AuthService {
     return { user, profile, token };
   }
 
+  /**
+   * Returns true when the HTTP response is from a static file server
+   * (GitHub Pages, Netlify, etc.) rather than our real Express API.
+   * Static servers return text/html for all unknown routes.
+   */
+  private static isStaticServerResponse(res: Response): boolean {
+    const ct = res.headers.get('content-type') ?? '';
+    // 405 = static server doesn't support POST
+    // text/html body = GitHub Pages error page, not our JSON API
+    return res.status === 405 || ct.includes('text/html');
+  }
+
   public static async registerStudent(params: {
     email: string;
     password: string;
@@ -313,22 +325,25 @@ export class AuthService {
         }),
       });
 
+      // If response is from static host (405, HTML body) → fall through to offline
+      if (this.isStaticServerResponse(res)) {
+        throw new Error('__STATIC_HOST__');
+      }
+
       const data = await this.safeParseJson(res);
       if (res.ok) {
         this.setSession(data.token, data.user, data.profile);
         return data;
       }
-      // 4xx = business logic error (e.g. email taken) — propagate
-      if (res.status < 500) {
-        throw new Error(data.error || `Registration failed with status ${res.status}`);
-      }
+      // Real API error (e.g. email already taken) — propagate
+      throw new Error(data.error || `Registration failed with status ${res.status}`);
     } catch (err: any) {
-      // Re-throw 4xx business errors as-is
       const msg: string = err?.message ?? '';
-      if (msg && !msg.toLowerCase().includes('fetch') && !msg.toLowerCase().includes('network') && !msg.toLowerCase().includes('failed to fetch')) {
+      // Only fall through to offline if it's a network/static-host issue
+      if (msg !== '__STATIC_HOST__' && msg && !msg.toLowerCase().includes('fetch') && !msg.toLowerCase().includes('network') && !msg.toLowerCase().includes('failed to fetch')) {
         throw err;
       }
-      // Network / server unreachable → fall through to offline mode
+      // Network / server unreachable / static host → fall through to offline mode
     }
 
     // Offline / GitHub Pages fallback
@@ -354,21 +369,24 @@ export class AuthService {
         }),
       });
 
+      // If response is from static host (405, HTML body) → fall through to offline
+      if (this.isStaticServerResponse(res)) {
+        throw new Error('__STATIC_HOST__');
+      }
+
       const data = await this.safeParseJson(res);
       if (res.ok) {
         this.setSession(data.token, data.user, data.profile);
         return data;
       }
-      // 4xx = wrong credentials or role — propagate without offline fallback
-      if (res.status < 500) {
-        throw new Error(data.error || `Login failed with status ${res.status}`);
-      }
+      // Real API 4xx error = wrong credentials — propagate without offline fallback
+      throw new Error(data.error || `Login failed with status ${res.status}`);
     } catch (err: any) {
       const msg: string = err?.message ?? '';
-      if (msg && !msg.toLowerCase().includes('fetch') && !msg.toLowerCase().includes('network') && !msg.toLowerCase().includes('failed to fetch') && !msg.toLowerCase().includes('networkerror')) {
+      if (msg !== '__STATIC_HOST__' && msg && !msg.toLowerCase().includes('fetch') && !msg.toLowerCase().includes('network') && !msg.toLowerCase().includes('failed to fetch') && !msg.toLowerCase().includes('networkerror')) {
         throw err;
       }
-      // Network / server unreachable → offline fallback
+      // Network / server unreachable / static host → offline fallback
     }
 
     // ---------------------------------------------------------------------------
