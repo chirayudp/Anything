@@ -4,83 +4,83 @@
       "id": "org_vanguard",
       "name": "Vanguard Youth Empowerment Hyderabad",
       "code": "VGY-HYD",
-      "createdAt": 1790409019952
+      "createdAt": 1790428849465
     },
     {
       "id": "org_pratham",
       "name": "Pratham Telangana Literacy Foundation",
       "code": "PRT-TEL",
-      "createdAt": 1790409019952
+      "createdAt": 1790428849465
     }
   ],
   "users": [
     {
       "id": "usr_student_arjun",
       "email": "arjun@student.in",
-      "passwordHash": "$2b$10$dUCMckP/IuC5OyQHfyAFk.NKx6/9u2s7oW8g9gRofv6YEp5NCtXfe",
+      "passwordHash": "$2b$10$MFRdkvEVCAVxdKp/EzZR3OOHSoxDC9nyT3xaAxbJMMVMpFSEIpdTi",
       "role": "student",
       "organizationId": "org_vanguard",
       "name": "Arjun (The Scholar)",
       "studentId": "STU-1042",
       "avatar": "avatar_arjun",
-      "createdAt": 1792396220273,
-      "lastLoginAt": 1793001020603
+      "createdAt": 1792416049664,
+      "lastLoginAt": 1793020849858
     },
     {
       "id": "usr_student_priya",
       "email": "priya@student.in",
-      "passwordHash": "$2b$10$dUCMckP/IuC5OyQHfyAFk.NKx6/9u2s7oW8g9gRofv6YEp5NCtXfe",
+      "passwordHash": "$2b$10$MFRdkvEVCAVxdKp/EzZR3OOHSoxDC9nyT3xaAxbJMMVMpFSEIpdTi",
       "role": "student",
       "organizationId": "org_vanguard",
       "name": "Priya (The Tech Whiz)",
       "studentId": "STU-2088",
       "avatar": "avatar_priya",
-      "createdAt": 1792569020273,
-      "lastLoginAt": 1792993820273
+      "createdAt": 1792588849664,
+      "lastLoginAt": 1793013649664
     },
     {
       "id": "usr_student_rahul",
       "email": "rahul@student.in",
-      "passwordHash": "$2b$10$dUCMckP/IuC5OyQHfyAFk.NKx6/9u2s7oW8g9gRofv6YEp5NCtXfe",
+      "passwordHash": "$2b$10$MFRdkvEVCAVxdKp/EzZR3OOHSoxDC9nyT3xaAxbJMMVMpFSEIpdTi",
       "role": "student",
       "organizationId": "org_pratham",
       "name": "Rahul (The Saver)",
       "studentId": "STU-3015",
       "avatar": "avatar_rahul",
-      "createdAt": 1792655420273,
-      "lastLoginAt": 1792997420273
+      "createdAt": 1792675249664,
+      "lastLoginAt": 1793017249664
     },
     {
       "id": "usr_staff_vanguard",
       "email": "staff@vanguard.org",
-      "passwordHash": "$2b$10$8yuQRRttYuqeTGOWGp5L2uWBmFl4ETd7rI4nkOoASjF9JuuKIc/r6",
+      "passwordHash": "$2b$10$5rDnAokMi.VCPjW5KWmRm.e8HVFiVtukxxSVbPK3yL6zNP4L8oslG",
       "role": "ngo_staff",
       "organizationId": "org_vanguard",
       "name": "Vanguard Educational Officer",
-      "createdAt": 1791273020273,
-      "lastLoginAt": 1793001020728
+      "createdAt": 1791292849664,
+      "lastLoginAt": 1793020849931
     },
     {
       "id": "usr_staff_pratham",
       "email": "mentor@pratham.org",
-      "passwordHash": "$2b$10$kr36oPtCXZo0MhUL.ijq/uvryAXhiG725cn55fVkZ9NMH9KAvQDIe",
+      "passwordHash": "$2b$10$4xa8/2pBh3fut30l72tstOvUouCVVwqo5jJlW4Cb8cr7WbQAdNpp6",
       "role": "ngo_staff",
       "organizationId": "org_pratham",
       "name": "Pratham District Coordinator",
-      "createdAt": 1791273020273,
-      "lastLoginAt": 1792998020273
+      "createdAt": 1791292849664,
+      "lastLoginAt": 1793017849664
     },
     {
-      "id": "usr_1793001020780_775",
+      "id": "usr_1793020849957_393",
       "email": "hacker@attack.com",
-      "passwordHash": "$2b$10$TbqpTSJlRm4FzigHyJrlMefbU8T9nAwgXjm2DfPdl5J3/5HvBp1.u",
+      "passwordHash": "$2b$10$wEi5jR3GWDN6dRayeujfCORd89rpvc08P14gp07SU9U61OFccfuWu",
       "role": "student",
       "organizationId": "org_vanguard",
       "name": "Attacker",
-      "studentId": "STU-7868",
+      "studentId": "STU-7205",
       "avatar": "avatar_arjun",
-      "createdAt": 1793001020882,
-      "lastLoginAt": 1793001020882
+      "createdAt": 1793020850020,
+      "lastLoginAt": 1793020850020
     }
   ],
   "studentProfiles": [
@@ -114,8 +114,8 @@
         "y": 280,
         "direction": "down"
       },
-      "createdAt": 1792396220273,
-      "lastActiveAt": 1793001020765
+      "createdAt": 1792416049664,
+      "lastActiveAt": 1793020849949
     },
     {
       "studentId": "STU-2088",
@@ -144,8 +144,8 @@
         "y": 300,
         "direction": "right"
       },
-      "createdAt": 1792569020273,
-      "lastActiveAt": 1792993820273
+      "createdAt": 1792588849664,
+      "lastActiveAt": 1793013649664
     },
     {
       "studentId": "STU-3015",
@@ -172,12 +172,12 @@
         "Frugal Rider"
       ],
       "savedWorldState": null,
-      "createdAt": 1792655420273,
-      "lastActiveAt": 1792997420273
+      "createdAt": 1792675249664,
+      "lastActiveAt": 1793017249664
     },
     {
-      "studentId": "STU-7868",
-      "userId": "usr_1793001020780_775",
+      "studentId": "STU-7205",
+      "userId": "usr_1793020849957_393",
       "organizationId": "org_vanguard",
       "preferredLanguage": "en",
       "scholarshipStipend": 5000,
@@ -193,8 +193,8 @@
         "Scholarship Recipient"
       ],
       "savedWorldState": null,
-      "createdAt": 1793001020883,
-      "lastActiveAt": 1793001020883
+      "createdAt": 1793020850020,
+      "lastActiveAt": 1793020850020
     }
   ],
   "sessions": [],
@@ -225,7 +225,7 @@
       "hintsUsed": 0,
       "feedbackShown": "Hostel mess fee paid and 10% emergency saved.",
       "language": "en",
-      "timestamp": 1792741820273
+      "timestamp": 1792761649664
     },
     {
       "eventId": "EVT-INIT-002",
@@ -253,7 +253,7 @@
       "hintsUsed": 0,
       "feedbackShown": "Repaired screen at Abids rather than buying a new phone on loan.",
       "language": "en",
-      "timestamp": 1792828220273
+      "timestamp": 1792848049664
     },
     {
       "eventId": "EVT-INIT-003",
@@ -281,10 +281,10 @@
       "hintsUsed": 1,
       "feedbackShown": "Splurged entire scholarship at premium cafe before paying mess fees.",
       "language": "en",
-      "timestamp": 1792914620273
+      "timestamp": 1792934449664
     },
     {
-      "eventId": "EVT-TEST-1793001020607",
+      "eventId": "EVT-TEST-1793020849861",
       "eventType": "decision",
       "scenarioId": "scenario_cycle_repair",
       "choiceId": "choice_repair_tube",
@@ -307,7 +307,7 @@
       "language": "en",
       "studentId": "STU-1042",
       "organizationId": "org_vanguard",
-      "timestamp": 1793001020611
+      "timestamp": 1793020849863
     }
   ]
 }
