@@ -1,7 +1,7 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { AuthService } from '../services/authService';
 
-const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+const basePath = (typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL || '/').replace(/\/$/, '');
 
 const toAppPath = (pathname: string): string => {
   if (basePath && pathname.startsWith(basePath)) {
