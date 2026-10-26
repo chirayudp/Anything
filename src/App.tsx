@@ -148,9 +148,16 @@ const MainAppContent: React.FC = () => {
   // VIEW RENDER DISPATCHING
   // =========================================================================
 
-  // 1. Root route
+  // 1. Root route — show a loading spinner while the redirect useEffect fires
   if (path === '/') {
-    return null;
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="text-5xl animate-bounce" style={{ animationDuration: '1.2s' }}>🪙</div>
+          <p className="text-amber-400 text-sm font-semibold tracking-wide animate-pulse">Loading MoneyQuest…</p>
+        </div>
+      </div>
+    );
   }
 
   // 2. NGO Portal Routes
